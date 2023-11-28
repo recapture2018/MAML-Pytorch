@@ -18,11 +18,7 @@ def main():
     num_updates = 5
     dataset = 'mini-imagenet'
 
-    if dataset == 'omniglot':
-        imgsz = 28
-        db = OmniglotNShot('dataset', batchsz=meta_batchsz, n_way=n_way, k_shot=k_shot, k_query=k_query, imgsz=imgsz)
-
-    elif dataset == 'mini-imagenet':
+    if dataset == 'mini-imagenet':
         imgsz = 84
         # the dataset loaders are different from omniglot to mini-imagenet. for omniglot, it just has one loader to use
         # get_batch(train or test) to get different batch.
@@ -34,6 +30,10 @@ def main():
                                  k_query=k_query,
                                  batchsz=1000, resize=imgsz)
         db_test = DataLoader(mini_test, meta_batchsz, shuffle=True, num_workers=2, pin_memory=True)
+
+    elif dataset == 'omniglot':
+        imgsz = 28
+        db = OmniglotNShot('dataset', batchsz=meta_batchsz, n_way=n_way, k_shot=k_shot, k_query=k_query, imgsz=imgsz)
 
     else:
         raise NotImplementedError
@@ -48,16 +48,7 @@ def main():
     for episode_num in range(200000):
 
         # 1. train
-        if dataset == 'omniglot':
-            support_x, support_y, query_x, query_y = db.get_batch('test')
-            support_x = Variable(
-                torch.from_numpy(support_x).float().transpose(2, 4).transpose(3, 4).repeat(1, 1, 3, 1, 1)).cuda()
-            query_x = Variable(
-                torch.from_numpy(query_x).float().transpose(2, 4).transpose(3, 4).repeat(1, 1, 3, 1, 1)).cuda()
-            support_y = Variable(torch.from_numpy(support_y).long()).cuda()
-            query_y = Variable(torch.from_numpy(query_y).long()).cuda()
-
-        elif dataset == 'mini-imagenet':
+        if dataset == 'mini-imagenet':
             try:
                 batch_train = iter(db).next()
             except StopIteration as err:
@@ -73,6 +64,15 @@ def main():
             query_y = Variable(batch_train[3])
             print(support_x.size(), support_y.size())
 
+        elif dataset == 'omniglot':
+            support_x, support_y, query_x, query_y = db.get_batch('test')
+            support_x = Variable(
+                torch.from_numpy(support_x).float().transpose(2, 4).transpose(3, 4).repeat(1, 1, 3, 1, 1)).cuda()
+            query_x = Variable(
+                torch.from_numpy(query_x).float().transpose(2, 4).transpose(3, 4).repeat(1, 1, 3, 1, 1)).cuda()
+            support_y = Variable(torch.from_numpy(support_y).long()).cuda()
+            query_y = Variable(torch.from_numpy(query_y).long()).cuda()
+
         # backprop has been embeded in forward func.
         accs = net.train(support_x, support_y, query_x, query_y)
         train_acc = np.array(accs).mean()
@@ -80,18 +80,8 @@ def main():
         # 2. test
         if episode_num % 30 == 220:
             test_accs = []
-            for i in range(min(episode_num // 5000 + 3, 10)):  # get average acc.
-                if dataset == 'omniglot':
-                    support_x, support_y, query_x, query_y = db.get_batch('test')
-                    support_x = Variable(
-                        torch.from_numpy(support_x).float().transpose(2, 4).transpose(3, 4).repeat(1, 1, 3, 1,
-                                                                                                   1)).cuda()
-                    query_x = Variable(
-                        torch.from_numpy(query_x).float().transpose(2, 4).transpose(3, 4).repeat(1, 1, 3, 1, 1)).cuda()
-                    support_y = Variable(torch.from_numpy(support_y).long()).cuda()
-                    query_y = Variable(torch.from_numpy(query_y).long()).cuda()
-
-                elif dataset == 'mini-imagenet':
+            for _ in range(min(episode_num // 5000 + 3, 10)):
+                if dataset == 'mini-imagenet':
                     try:
                         batch_test = iter(db_test).next()
                     except StopIteration as err:
@@ -106,6 +96,16 @@ def main():
                     support_y = Variable(batch_test[1])
                     query_x = Variable(batch_test[2])
                     query_y = Variable(batch_test[3])
+
+                elif dataset == 'omniglot':
+                    support_x, support_y, query_x, query_y = db.get_batch('test')
+                    support_x = Variable(
+                        torch.from_numpy(support_x).float().transpose(2, 4).transpose(3, 4).repeat(1, 1, 3, 1,
+                                                                                                   1)).cuda()
+                    query_x = Variable(
+                        torch.from_numpy(query_x).float().transpose(2, 4).transpose(3, 4).repeat(1, 1, 3, 1, 1)).cuda()
+                    support_y = Variable(torch.from_numpy(support_y).long()).cuda()
+                    query_y = Variable(torch.from_numpy(query_y).long()).cuda()
 
                 # get accuracy
                 # test_acc = net.train(support_x, support_y, query_x, query_y, train=False)

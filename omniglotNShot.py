@@ -31,15 +31,13 @@ class OmniglotNShot:
 
             temp = dict()  # {label:img1, img2..., 20 imgs, label2: img1, img2,... in total, 1623 label}
             for (img, label) in self.x:
-                if label in temp.keys():
+                if label in temp:
                     temp[label].append(img)
                 else:
                     temp[label] = [img]
 
             self.x = []
-            for label, imgs in temp.items():  # labels info deserted , each label contains 20imgs
-                self.x.append(np.array(imgs))
-
+            self.x.extend(np.array(imgs) for imgs in temp.values())
             # as different class may have different number of imgs
             self.x = np.array(self.x).astype(np.float)  # [[20 imgs],..., 1623 classes in total]
             # each character contains 20 imgs
@@ -105,11 +103,9 @@ class OmniglotNShot:
         data_cache = []
 
         # print('preload next 50 caches of batchsz of batch.')
-        for sample in range(10):  # num of episodes
-
+        for _ in range(10):
             x_spts, y_spts, x_qrys, y_qrys = [], [], [], []
-            for i in range(self.batchsz):  # one batch means one set
-
+            for _ in range(self.batchsz):
                 x_spt, y_spt, x_qry, y_qry = [], [], [], []
                 selected_cls = np.random.choice(data_pack.shape[0], self.n_way, False)
 
@@ -180,7 +176,7 @@ if __name__ == '__main__':
 
     db = OmniglotNShot('db/omniglot', batchsz=20, n_way=5, k_shot=5, k_query=15, imgsz=64)
 
-    for i in range(1000):
+    for _ in range(1000):
         x_spt, y_spt, x_qry, y_qry = db.next('train')
 
 

@@ -62,7 +62,7 @@ def main():
                              k_query=args.k_qry,
                              batchsz=100, resize=args.imgsz)
 
-    for epoch in range(args.epoch//10000):
+    for _ in range(args.epoch//10000):
         # fetch meta_batchsz num of episode each time
         db = DataLoader(mini, args.task_num, shuffle=True, num_workers=1, pin_memory=True)
 

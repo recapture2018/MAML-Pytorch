@@ -136,7 +136,7 @@ def inner_train(K, gpuidx, support_x, support_y, query_x, query_y, concepts, Q):
         # query_xb  : [querysz, c_, h, w]
         # query_yb  : [querysz]
         # 1. meta-train for K iterations on meta-train dataset
-        for i in range(K):
+        for _ in range(K):
             # get the representation from concept-network
             x = concepts[gpuidx](support_xb)
             # detach gradient backpropagation

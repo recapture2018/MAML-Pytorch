@@ -159,7 +159,7 @@ def main():
 
     # whole parameters number
     model_parameters = filter(lambda p: p.requires_grad, net.parameters())
-    params = sum([np.prod(p.size()) for p in model_parameters])
+    params = sum(np.prod(p.size()) for p in model_parameters)
     print('Total params:', params)
 
     # build optimizer and lr scheduler

@@ -27,7 +27,7 @@ class Learner(nn.Module):
         # running_mean and running_var
         self.vars_bn = nn.ParameterList()
 
-        for i, (name, param) in enumerate(self.config):
+        for name, param in self.config:
             if name is 'conv2d':
                 # [ch_out, ch_in, kernelsz, kernelsz]
                 w = nn.Parameter(torch.ones(*param[:4]))
@@ -85,12 +85,12 @@ class Learner(nn.Module):
         for name, param in self.config:
             if name is 'conv2d':
                 tmp = 'conv2d:(ch_in:%d, ch_out:%d, k:%dx%d, stride:%d, padding:%d)'\
-                      %(param[1], param[0], param[2], param[3], param[4], param[5],)
+                          %(param[1], param[0], param[2], param[3], param[4], param[5],)
                 info += tmp + '\n'
 
             elif name is 'convt2d':
                 tmp = 'convTranspose2d:(ch_in:%d, ch_out:%d, k:%dx%d, stride:%d, padding:%d)'\
-                      %(param[0], param[1], param[2], param[3], param[4], param[5],)
+                          %(param[0], param[1], param[2], param[3], param[4], param[5],)
                 info += tmp + '\n'
 
             elif name is 'linear':
@@ -109,7 +109,7 @@ class Learner(nn.Module):
                 tmp = 'max_pool2d:(k:%d, stride:%d, padding:%d)'%(param[0], param[1], param[2])
                 info += tmp + '\n'
             elif name in ['flatten', 'tanh', 'relu', 'upsample', 'reshape', 'sigmoid', 'use_logits', 'bn']:
-                tmp = name + ':' + str(tuple(param))
+                tmp = f'{name}:{tuple(param)}'
                 info += tmp + '\n'
             else:
                 raise NotImplementedError
